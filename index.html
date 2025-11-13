@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>bKash — Send Money (Replica)</title>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg: #ffffff;
+      --accent-pink: #e6007e; /* main bKash-like pink */
+      --accent-light: #ffd8ea;
+      --muted: #9b9b9b;
+      --success-green: #009944;
+      --card-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --screen-width: 390px; /* mobile-width */
+      --safe-padding: 18px;
+      --radius: 10px;
+    }
+
+    *{box-sizing: border-box; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(180deg,#fafafa 0%, #fff 100%);
+      font-family: "Roboto", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color:#222;
+      padding:30px;
+    }
+
+    /* phone frame */
+    .phone {
+      width:var(--screen-width);
+      background:var(--bg);
+      border-radius:18px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.04);
+      transform: scale(1);
+    }
+
+    /* top status bar (mimic) */
+    .statusbar{
+      height:40px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 12px;
+      background:linear-gradient(180deg, rgba(0,0,0,0.02), transparent);
+      color:#666;
+      font-size:12px;
+    }
+
+    /* content area (scrollable if needed) */
+    .content{
+      padding: 18px;
+    }
+
+    /* small black floating badge like screenshot */
+    .floating-badge{
+      position:relative;
+      margin: 8px 0 16px 0;
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+    }
+    .badge {
+      background: #2c2c2c;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 20px;
+      font-weight:500;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+      font-size:13px;
+    }
+    .badge .logo {
+      width:28px; height:28px; border-radius:6px;
+      background:var(--accent-pink);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:800; color:white; font-size:14px;
+    }
+
+    /* headline */
+    .headline {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-top:6px;
+    }
+    .headline h1{
+      margin:0;
+      font-size:20px;
+      font-weight:700;
+      line-height:1.05;
+      color:#ff2b8c; /* pink-ish for "Send Money" word variant */
+    }
+    .headline .small {
+      font-size:20px;
+      font-weight:300;
+      color:#e74b9b; /* "Your" pink lighter*/
+    }
+    /* we'll style text to match: "Your Send Money is successful" */
+    .headline .green {
+      color: var(--success-green);
+      font-weight:700;
+    }
+    .check-circle{
+      margin-left:auto;
+      width:44px; height:44px; border-radius:50%;
+      border:3px solid #3dc07a22;
+      display:flex; align-items:center; justify-content:center;
+      color:var(--success-green);
+      font-weight:700;
+      font-size:20px;
+    }
+
+    /* user row */
+    .user-row{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin:22px 0;
+    }
+    .avatar {
+      width:56px; height:56px; border-radius:50%;
+      background: #cfeacf;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:700; color: #2a7f5a;
+      font-size:22px;
+    }
+    .user-info{
+      flex:1;
+    }
+    .user-info .phone-main{
+      font-weight:700;
+      font-size:15px;
+      margin-bottom:4px;
+    }
+    .call-button{
+      border:2px solid var(--accent-pink);
+      color:var(--accent-pink);
+      padding:10px 14px;
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-weight:600;
+      font-size:14px;
+      background:transparent;
+    }
+
+    /* rows with grid boxes */
+    .grid {
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:0;
+      border-top:1px solid #f0f0f0;
+      border-bottom:1px solid #f0f0f0;
+      margin-top:6px;
+    }
+    .cell {
+      padding:18px;
+      border-right:1px solid #f5f5f5;
+    }
+    .cell:last-child{ border-right: none; }
+    .label { color:var(--muted); font-size:13px; margin-bottom:8px; }
+    .value { font-weight:700; font-size:16px; }
+
+    .transaction-id { display:flex; align-items:center; gap:8px; }
+    .tx-copy {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:6px 8px;
+      border-radius:8px;
+      border:1px solid rgba(0,0,0,0.06);
+      background: #fff0f7;
+      color:var(--accent-pink);
+      font-weight:700;
+      font-size:13px;
+    }
+
+    /* large totals row */
+    .totals {
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:0;
+      border-top:1px solid #f2f2f2;
+      border-bottom:1px solid #f2f2f2;
+    }
+    .totals .cell { padding:18px; border-right:1px solid #f8f8f8; }
+    .totals .cell:last-child{ border-right:none; }
+    .currency { font-weight:800; font-size:18px; margin-top:6px; display:block; }
+
+    .muted-small { color:#b7b7b7; font-size:13px; margin-top:6px; display:block; font-weight:500; }
+
+    /* reference blank area */
+    .reference { padding:18px; border-bottom:1px solid #f6f6f6; min-height:48px; color:#bdbdbd; }
+
+    /* action buttons row */
+    .actions {
+      display:flex;
+      gap:12px;
+      padding:16px;
+      align-items:center;
+    }
+    .btn {
+      flex:1;
+      border-radius:12px;
+      padding:12px 14px;
+      text-align:center;
+      font-weight:700;
+      border:2px solid var(--accent-pink);
+      color:var(--accent-pink);
+      background:transparent;
+    }
+    .btn.primary {
+      background: linear-gradient(180deg, rgba(230,0,126,0.06), rgba(230,0,126,0.03));
+    }
+
+    /* reward area */
+    .reward {
+      text-align:center;
+      padding:26px 18px;
+      color:#666;
+    }
+    .reward .star {
+      width:54px; height:54px; margin:0 auto 10px;
+      background:var(--accent-pink); color:white; border-radius:50%;
+      display:flex; align-items:center; justify-content:center; font-weight:800;
+    }
+    .reward h3 { margin:4px 0; font-size:16px; font-weight:800; }
+    .reward p { margin:6px 0 0 0; color:#8b8b8b; font-size:14px; }
+
+    /* back to home footer button big */
+    .footer-cta{
+      background:var(--accent-pink);
+      color:white;
+      padding:18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-weight:700;
+      font-size:16px;
+    }
+
+    /* small responsive center on big screens */
+    @media(min-width:900px){
+      body{ background: #f6f6f6; }
+      .phone{ transform: scale(1.02); }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="phone" role="application" aria-label="bKash send money replica">
+    <div class="statusbar">
+      <div>3:59</div>
+      <div style="font-size:12px;color:#999">4G ⦁ 🔋</div>
+    </div>
+
+    <div class="content">
+      <div class="floating-badge">
+        <div class="badge">
+          <div class="logo">bK</div>
+          <div>Send Money 12-11-2025 03:59 PM</div>
+        </div>
+      </div>
+
+      <div class="headline" aria-hidden="false" role="heading">
+        <div style="display:flex; gap:6px; align-items:baseline;">
+          <div class="small">Your</div>
+          <div style="font-weight:900; color:var(--accent-pink); font-size:20px; margin-left:2px;">Send Money</div>
+          <div style="font-weight:400; color:#333; margin-left:8px;">is</div>
+          <div class="green" style="margin-left:6px; font-size:20px;">successful</div>
+        </div>
+        <div class="check-circle">✔</div>
+      </div>
+
+      <div class="user-row">
+        <div class="avatar">0</div>
+        <div class="user-info">
+          <div class="phone-main">01817423950</div>
+          <div style="color:#b5b5b5; font-size:13px;">01817423950</div>
+        </div>
+        <button class="call-button" aria-label="Call">
+          📞 Call
+        </button>
+      </div>
+
+      <div class="grid" aria-hidden="false">
+        <div class="cell">
+          <div class="label">Time</div>
+          <div class="value">03:59pm 12/11/25</div>
+        </div>
+        <div class="cell">
+          <div class="label">Transaction ID</div>
+          <div class="value transaction-id">
+            CKC05JB1E0
+            <span class="tx-copy" title="copy tx">⧉</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="totals" aria-hidden="false">
+        <div class="cell">
+          <div class="label">Total</div>
+          <div class="currency">৳10,275.00</div>
+          <div class="muted-small">৳10,270.00 + ৳5.00</div>
+        </div>
+        <div class="cell">
+          <div class="label">New Balance</div>
+          <div class="currency">৳3,341.76 <span title="hidden icon" style="font-weight:700; color:var(--accent-pink); margin-left:6px;">👁‍🗨</span></div>
+        </div>
+      </div>
+
+      <div class="reference">Reference</div>
+
+      <div class="actions">
+        <button class="btn primary">⟳ Enable Auto Pay</button>
+        <button class="btn">➤ Share</button>
+      </div>
+
+      <div class="reward">
+        <div class="star">★</div>
+        <div style="font-size:13px; color:#9b9b9b;">You have earned</div>
+        <h3>bKash Reward Points</h3>
+        <p>To use your points, check your <strong style="color:var(--accent-pink);">bKash Rewards</strong></p>
+      </div>
+    </div>
+
+    <div class="footer-cta">
+      <div>◀ Back to Home</div>
+      <div style="opacity:0.95;">➜</div>
+    </div>
+  </div>
+</body>
+</html>
